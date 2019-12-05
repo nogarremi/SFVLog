@@ -11,6 +11,7 @@ pygments = "*"
 pypiwin32 = "*"
 kivy-deps-glew = "==0.1.*"
 kivy = "*"
+pymysql = "*"
 
 [requires]
 python_version = "3.7"
