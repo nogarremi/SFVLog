@@ -1,2 +1,2 @@
 # SFVLog
- Record SFV matches
+ Application to store CFN match results
