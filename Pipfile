@@ -1,0 +1,16 @@
+[[source]]
+name = "pypi"
+url = "https://pypi.org/simple"
+verify_ssl = true
+
+[dev-packages]
+
+[packages]
+docutils = "*"
+pygments = "*"
+pypiwin32 = "*"
+kivy-deps-glew = "==0.1.*"
+kivy = "*"
+
+[requires]
+python_version = "3.7"
