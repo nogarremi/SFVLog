@@ -32,7 +32,7 @@ try:
         for r in cursor:
             char_list.append(r['char_name'])
 
-        sql = 'SELECT players.opp_name, ranks.rank_name FROM players JOIN ranks ON players.opp_rank_id = ranks.rank_id'
+        sql = 'SELECT opponents.opp_name, ranks.rank_name FROM opponents JOIN ranks ON opponents.opp_rank_id = ranks.rank_id'
         cursor.execute(sql)
         for r in cursor:
             opp_list[r['opp_name'].lower()] = r['rank_name']
@@ -112,13 +112,13 @@ class SFVLog(GridLayout):
         try:
             with conn.cursor() as cursor:
                 if self.opp_name.text.lower() not in opp_list:
-                    sql = 'INSERT INTO players (opp_name, opp_rank_id) VALUES (%s, (SELECT rank_id FROM ranks WHERE rank_name = %s))'
+                    sql = 'INSERT INTO opponents (opp_name, opp_rank_id) VALUES (%s, (SELECT rank_id FROM ranks WHERE rank_name = %s))'
                     cursor.execute(sql, (self.opp_name.text, self.opp_rank.text))
                 elif self.opp_rank.text not in opp_list[self.opp_name.text.lower()]:
-                    sql = 'UPDATE players SET opp_rank_id = (SELECT rank_id FROM ranks WHERE rank_name = %s) WHERE opp_name = %s'
+                    sql = 'UPDATE opponents SET opp_rank_id = (SELECT rank_id FROM ranks WHERE rank_name = %s) WHERE opp_name = %s'
                     cursor.execute(sql, (self.opp_rank.text, self.opp_name.text))
 
-                sql = 'INSERT INTO matches (season, match_type, my_char_id, opp_id, opp_char_id, result) VALUES (%s, %s, (SELECT char_id FROM characters WHERE char_name = %s), (SELECT opp_id FROM players WHERE opp_name = %s), (SELECT char_id FROM characters WHERE char_name = %s), %s)'
+                sql = 'INSERT INTO matches (season, match_type, my_char_id, opp_id, opp_char_id, result) VALUES (%s, %s, (SELECT char_id FROM characters WHERE char_name = %s), (SELECT opp_id FROM opponents WHERE opp_name = %s), (SELECT char_id FROM characters WHERE char_name = %s), %s)'
                 cursor.execute(sql, (int(self.season.text), 0 if self.match_type.text.lower() == 'ranked' else 1 if self.match_type.text.lower() == 'casual' else 2, self.my_char.text, self.opp_name.text, self.opp_char.text, 1 if self.result.text.lower() in 'win' else 0))
 
                 conn.commit()
@@ -146,7 +146,7 @@ class SFVLog(GridLayout):
                         v[0].text = str(k).replace('_', ' ').title() + ': ' + str(row['COUNT(*)'])
 
                 opp_list = {}
-                sql = 'SELECT players.opp_name, ranks.rank_name FROM players JOIN ranks ON players.opp_rank_id = ranks.rank_id'
+                sql = 'SELECT opponents.opp_name, ranks.rank_name FROM opponents JOIN ranks ON opponents.opp_rank_id = ranks.rank_id'
                 cursor.execute(sql)
                 for r in cursor:
                     opp_list[r['opp_name'].lower()] = r['rank_name']
