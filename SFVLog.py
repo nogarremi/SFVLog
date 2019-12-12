@@ -5,7 +5,7 @@ from kivy.uix.button import Button
 from kivy.uix.spinner import Spinner
 from kivy.uix.textinput import TextInput
 from kivy.uix.gridlayout import GridLayout
-from sql_info import sql_host,sql_port,sql_user,sql_pw,sql_db
+from info import sql_host,sql_port,sql_user,sql_pw,sql_db, path
 import pymysql.cursors
 
 Config.set('graphics', 'height', '800')
@@ -144,7 +144,13 @@ class SFVLog(GridLayout):
                     cursor.execute(sql, v[1])
                     for row in cursor:
                         v[0].text = str(k).replace('_', ' ').title() + ': ' + str(row['COUNT(*)'])
-
+                        if 'ranked_wins' in str(k):
+                            with open(path + 'wins.txt','w') as win:
+                                win.write(v[0].text[13:])
+                        elif 'ranked_losses' in str(k):
+                            with open(path + 'losses.txt','w') as loss:
+                                loss.write(v[0].text[15:])
+                            
                 opp_list = {}
                 sql = 'SELECT opponents.opp_name, ranks.rank_name FROM opponents JOIN ranks ON opponents.opp_rank_id = ranks.rank_id'
                 cursor.execute(sql)
