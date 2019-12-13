@@ -8,6 +8,9 @@ from kivy.uix.gridlayout import GridLayout
 from info import sql_host,sql_port,sql_user,sql_pw,sql_db, path
 import pymysql.cursors
 
+def init_conn():
+    return pymysql.connect( host=sql_host,port=sql_port,user=sql_user,password=sql_pw,db=sql_db,charset='utf8mb4',cursorclass=pymysql.cursors.DictCursor)
+
 Config.set('graphics', 'height', '800')
 Config.set('graphics', 'width', '600')
 Config.set('graphics', 'minimum_height', '200')
@@ -15,27 +18,14 @@ Config.set('graphics', 'mimimum_width', '300')
 Config.write()
 
 char_list=[]
-opp_list={}
 rank_list=[]
-conn = pymysql.connect(
-    host=sql_host,
-    port=sql_port,
-    user=sql_user,
-    password=sql_pw,
-    db=sql_db,
-    charset='utf8mb4',
-    cursorclass=pymysql.cursors.DictCursor)
+conn = init_conn()
 try:
     with conn.cursor() as cursor:
         sql = 'SELECT char_name FROM characters'
         cursor.execute(sql)
         for r in cursor:
             char_list.append(r['char_name'])
-
-        sql = 'SELECT opponents.opp_name, ranks.rank_name FROM opponents JOIN ranks ON opponents.opp_rank_id = ranks.rank_id'
-        cursor.execute(sql)
-        for r in cursor:
-            opp_list[r['opp_name'].lower()] = r['rank_name']
 
         sql = 'SELECT rank_name FROM ranks'
         cursor.execute(sql)
@@ -100,17 +90,15 @@ class SFVLog(GridLayout):
         self.add_widget(self.bl_losses)
 
     def writeout(self,instance,**kwargs):
-        conn = pymysql.connect(
-            host=sql_host,
-            port=sql_port,
-            user=sql_user,
-            password=sql_pw,
-            db=sql_db,
-            charset='utf8mb4',
-            cursorclass=pymysql.cursors.DictCursor)
-        
+        conn = init_conn()
         try:
             with conn.cursor() as cursor:
+                opp_list = {}
+                sql = 'SELECT opponents.opp_name, ranks.rank_name FROM opponents JOIN ranks ON opponents.opp_rank_id = ranks.rank_id'
+                cursor.execute(sql)
+                for r in cursor:
+                    opp_list[r['opp_name'].lower()] = r['rank_name']
+                
                 if self.opp_name.text.lower() not in opp_list:
                     sql = 'INSERT INTO opponents (opp_name, opp_rank_id) VALUES (%s, (SELECT rank_id FROM ranks WHERE rank_name = %s))'
                     cursor.execute(sql, (self.opp_name.text, self.opp_rank.text))
@@ -118,25 +106,17 @@ class SFVLog(GridLayout):
                     sql = 'UPDATE opponents SET opp_rank_id = (SELECT rank_id FROM ranks WHERE rank_name = %s) WHERE opp_name = %s'
                     cursor.execute(sql, (self.opp_rank.text, self.opp_name.text))
 
-                sql = 'INSERT INTO matches (season, match_type, my_char_id, opp_id, opp_char_id, result) VALUES (%s, %s, (SELECT char_id FROM characters WHERE char_name = %s), (SELECT opp_id FROM opponents WHERE opp_name = %s), (SELECT char_id FROM characters WHERE char_name = %s), %s);'
+                sql = 'INSERT INTO matches (season, match_type, my_char_id, opp_id, opp_char_id, result) VALUES (%s, %s, (SELECT char_id FROM characters WHERE char_name = %s), (SELECT opp_id FROM opponents WHERE opp_name = %s), (SELECT char_id FROM characters WHERE char_name = %s), %s)'
                 cursor.execute(sql, (int(self.season.text), 0 if self.match_type.text.lower() == 'ranked' else 1 if self.match_type.text.lower() == 'casual' else 2, self.my_char.text, self.opp_name.text, self.opp_char.text, 1 if self.result.text.lower() in 'win' else 0))
 
                 conn.commit()
         finally:
             conn.close()
 
-        self.label_update(ranked_wins = (self.rank_wins, ('0','1')), ranked_losses = (self.rank_losses, ('0','0')), casual_wins = (self.cas_wins, ('1','1')), casual_losses = (self.cas_losses, ('1','0')), b_l_wins = (self.bl_wins, ('2','1')), b_l_losses = (self.bl_losses, ('2','0')))    
+        self.label_update(ranked_wins = (self.rank_wins, ('0','1')), ranked_losses = (self.rank_losses, ('0','0')), casual_wins = (self.cas_wins, ('1','1')), casual_losses = (self.cas_losses, ('1','0')), b_l_wins = (self.bl_wins, ('2','1')), b_l_losses = (self.bl_losses, ('2','0')))
 
     def label_update(self,**kwargs):
-
-        conn = pymysql.connect(
-            host=sql_host,
-            port=sql_port,
-            user=sql_user,
-            password=sql_pw,
-            db=sql_db,
-            charset='utf8mb4',
-            cursorclass=pymysql.cursors.DictCursor)
+        conn = init_conn()
         try:
             with conn.cursor() as cursor:
                 sql = 'SELECT COUNT(*) FROM matches WHERE match_type = %s AND result = %s'
@@ -150,19 +130,6 @@ class SFVLog(GridLayout):
                         elif 'ranked_losses' in str(k):
                             with open(path + 'losses.txt','w') as loss:
                                 loss.write(v[0].text[15:])
-                            
-                opp_list = {}
-                sql = 'SELECT opponents.opp_name, ranks.rank_name FROM opponents JOIN ranks ON opponents.opp_rank_id = ranks.rank_id'
-                cursor.execute(sql)
-                for r in cursor:
-                    opp_list[r['opp_name'].lower()] = r['rank_name']
-
-                rank_list = []
-                sql = 'SELECT rank_name FROM ranks'
-                cursor.execute(sql)
-                for r in cursor:
-                    rank_list.append(r['rank_name'])
-                    
         finally:
             conn.close()
 
