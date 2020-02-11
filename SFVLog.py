@@ -79,7 +79,7 @@ class SFVLog(GridLayout):
         self.cas_losses = Label()
         self.bl_wins = Label()
         self.bl_losses = Label()
-        self.label_update(ranked_wins = (self.rank_wins, ('0','1')), ranked_losses = (self.rank_losses, ('0','0')), casual_wins = (self.cas_wins, ('1','1')), casual_losses = (self.cas_losses, ('1','0')), b_l_wins = (self.bl_wins, ('2','1')), b_l_losses = (self.bl_losses, ('2','0')))
+        self.label_update(ranked_wins = (self.rank_wins, ('1','2')), ranked_losses = (self.rank_losses, ('1','1')), casual_wins = (self.cas_wins, ('2','2')), casual_losses = (self.cas_losses, ('2','1')), b_l_wins = (self.bl_wins, ('3','2')), b_l_losses = (self.bl_losses, ('3','1')))
 
         self.add_widget(self.rank_wins)
         self.add_widget(self.rank_losses)
@@ -107,13 +107,13 @@ class SFVLog(GridLayout):
                     cursor.execute(sql, (self.opp_rank.text, self.opp_name.text))
 
                 sql = 'INSERT INTO matches (season, match_type, my_char_id, opp_id, opp_char_id, result) VALUES (%s, %s, (SELECT char_id FROM characters WHERE char_name = %s), (SELECT opp_id FROM opponents WHERE opp_name = %s), (SELECT char_id FROM characters WHERE char_name = %s), %s)'
-                cursor.execute(sql, (int(self.season.text), 0 if self.match_type.text.lower() == 'ranked' else 1 if self.match_type.text.lower() == 'casual' else 2, self.my_char.text, self.opp_name.text, self.opp_char.text, 1 if self.result.text.lower() in 'win' else 0))
+                cursor.execute(sql, (int(self.season.text), 1 if self.match_type.text.lower() == 'ranked' else 2 if self.match_type.text.lower() == 'casual' else 3, self.my_char.text, self.opp_name.text, self.opp_char.text, 2 if self.result.text.lower() in 'win' else 1))
 
                 conn.commit()
         finally:
             conn.close()
 
-        self.label_update(ranked_wins = (self.rank_wins, ('0','1')), ranked_losses = (self.rank_losses, ('0','0')), casual_wins = (self.cas_wins, ('1','1')), casual_losses = (self.cas_losses, ('1','0')), b_l_wins = (self.bl_wins, ('2','1')), b_l_losses = (self.bl_losses, ('2','0')))
+        self.label_update(ranked_wins = (self.rank_wins, ('1','2')), ranked_losses = (self.rank_losses, ('1','1')), casual_wins = (self.cas_wins, ('2','2')), casual_losses = (self.cas_losses, ('2','1')), b_l_wins = (self.bl_wins, ('3','2')), b_l_losses = (self.bl_losses, ('3','1')))
 
     def label_update(self,**kwargs):
         conn = init_conn()
