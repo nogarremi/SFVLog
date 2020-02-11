@@ -125,5 +125,4 @@ dmypy.json
 .pyre/
 
 # My Stuff
-sql_info.py
 info.py
