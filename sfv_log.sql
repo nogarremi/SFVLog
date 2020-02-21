@@ -98,9 +98,7 @@ CREATE TABLE IF NOT EXISTS `opponents` (
   `opp_name` varchar(16) NOT NULL,
   `createdAt` timestamp NULL DEFAULT NULL,
   `updatedAt` datetime DEFAULT NULL,
-  PRIMARY KEY (`opp_id`),
-  KEY `FK_opp_rank_id` (`opp_rank_id`),
-  CONSTRAINT `FK_rank` FOREIGN KEY (`opp_rank_id`) REFERENCES `ranks` (`rank_id`) ON UPDATE CASCADE
+  PRIMARY KEY (`opp_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 -- Dumping structure for table sfv_log.ranks
